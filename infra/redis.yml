@@ -33,21 +33,21 @@ spec:
               name: config
             - mountPath: /redis-data
               name: data
-      volumes:
-        - configMap:
-            defaultMode: 420 # (Nice)
-            name: redis-config
+    volumes:
+      - configMap:
+          defaultMode: 420 # (Nice)
+          name: redis-config
+        name: config
+      - emptyDir:
+        name: data
+        volumeMounts:
+        - mountPath: /redis-config
           name: config
-        - emptyDir:
+        - mountPath: /redis-data
           name: data
-          volumeMounts:
+      - command: [sh, -c, source /redis-config/sentinel.sh]
+        image: redis:3.2.7-alpine
+        name: sentinel
+        volumeMounts:
           - mountPath: /redis-config
             name: config
-          - mountPath: /redis-data
-            name: data
-        - command: [sh, -c, source /redis-config/sentinel.sh]
-          image: redis:3.2.7-alpine
-          name: sentinel
-          volumeMounts:
-            - mountPath: /redis-config
-              name: config

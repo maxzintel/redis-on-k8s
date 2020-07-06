@@ -39,7 +39,7 @@ slaveof redis-0.redis 6379
 ------------------  
 * Once we have created all of the above files and scripts, we need to package them up with a Kubernetes ConfigMap.
 ```bash
-$ kubectl create configmap \
+kubectl create configmap \
   --from-file=beta.conf=./beta.conf \
   --from-file=alpha.conf=./alpha.conf \
   --from-file=sentinel.conf=./sentinel.conf \
@@ -48,3 +48,7 @@ $ kubectl create configmap \
   redis-config
 ```
   * In this case we will do this imperatively, but it would also be straightforward to add this command to a script as a part of a CI/CD pipeline.
+* `redis-service.yml` is the headless redis service. Apply it before deploying anything using:
+  * `kubectl apply -f infra/redis.yml`
+* `redis.yml` is the stateful set which creates two containers. One runs the `init.sh` script that we created and the main redis server. The other is the sentinel that monitors the servers.
+  * Two volumes are also defined for the Pod. One is the volume that uses our ConfigMap to configure the two Redis Apps. The other is an `emptyDir` volume that is mapped into the Redis server container to hold the app data so it survives a container restart. **FOR A MORE RELIABLE REDIS** use a network attached disk for this instead.
