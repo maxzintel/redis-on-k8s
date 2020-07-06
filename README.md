@@ -38,3 +38,13 @@ slaveof redis-0.redis 6379
 * `sentinel.sh` is necessary because we need to wait for redis-0.redis DNS name to become available before we start to deploy the sentinel service.  
 ------------------  
 * Once we have created all of the above files and scripts, we need to package them up with a Kubernetes ConfigMap.
+```bash
+$ kubectl create configmap \
+  --from-file=beta.conf=./beta.conf \
+  --from-file=alpha.conf=./alpha.conf \
+  --from-file=sentinel.conf=./sentinel.conf \
+  --from-file=init.sh=./init.sh \
+  --from-file=sentinel.sh=./sentinel.sh \
+  redis-config
+```
+  * In this case we will do this imperatively, but it would also be straightforward to add this command to a script as a part of a CI/CD pipeline.
