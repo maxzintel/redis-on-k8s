@@ -34,3 +34,7 @@ slaveof redis-0.redis 6379
   * The name `redis-0.redis` will be setup using a service and a StatefulSet.
 * `sentinel.conf` configures the sentinel service with a few options for determining what it should watch, and when it should initiate a failover.
 * `init.sh` looks at the hostname for the Pod and determines if its an alpha or beta, depending on which it is, it will launch Redis with the appropriate conf file.
+  * Remember to `chmod` this to executable permissions if running locally. The same goes for all other `.sh` scripts.
+* `sentinel.sh` is necessary because we need to wait for redis-0.redis DNS name to become available before we start to deploy the sentinel service.  
+------------------  
+* Once we have created all of the above files and scripts, we need to package them up with a Kubernetes ConfigMap.
