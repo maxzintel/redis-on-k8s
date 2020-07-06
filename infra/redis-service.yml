@@ -1,0 +1,11 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: redis
+spec:
+  ports:
+  - port: 6379
+    name: peer
+  clusterIP: None # Creates a headless service to manage DNS entries for the stateful set.
+  selector:
+    app: redis
