@@ -32,3 +32,5 @@ slaveof redis-0.redis 6379
 * `beta.conf`
   * Identical to the alpha, but adds the directive to identify the alpha instance.
   * The name `redis-0.redis` will be setup using a service and a StatefulSet.
+* `sentinel.conf` configures the sentinel service with a few options for determining what it should watch, and when it should initiate a failover.
+* `init.sh` looks at the hostname for the Pod and determines if its an alpha or beta, depending on which it is, it will launch Redis with the appropriate conf file.
