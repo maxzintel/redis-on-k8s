@@ -12,6 +12,18 @@ Alternatively, read the Redis documentation, as it certainly does a much better 
 * **Deploying Redis in a replicated manner means you are deploying a single Alpha server that is used for read/write ops. There are additional Beta servers that duplicate the data on the Alpha, and load balance read operations.**
   * If the Alpha ever fails/goes down, and one of the Betas can fail over to become the new Alpha. This operation is performed by the sentinel.
 
+### Configuration v2:
+* Alright. So, the config in `~/infra/...` is old. We need a modern way to deploy redis. Helm (https://docs.bitnami.com/tutorials/deploy-redis-sentinel-production-cluster/) seems like a good pick.
+* Following along with that tutorial...
+  * `curl -Lo values-production.yaml https://raw.githubusercontent.com/bitnami/charts/master/bitnami/redis/values-production.yaml` to get the redis chart. We need to edit this to enable sentinel. `CMD+F` Sentinel to find the section where `sentinel.enabled: false` and change it to true.
+  * Double check you are connected to the right cluster. `kubectl cluster-info`. If you are, ~nothing to see here~, if you are not, `kubectl config use-context my-cluster-name` should do the trick!
+  * Install the latest version of the chart using the yaml file as shown below:
+    * `helm repo add bitnami https://charts.bitnami.com/bitnami` then
+    * `helm install redis bitnami/redis --values values-production.yaml`, this will output a bunch of stuff we will reference later, see my output in `~/infra-v2/output.txt`
+  * Check the status of the Pods and deployment with `kubectl get pods`
+
+
+## THE FOLLOWING (below) CONFIG FOR REDIS IS DEPRACATED.
 ### Configuration:
 ```alpha.conf
 bind 0.0.0.0
