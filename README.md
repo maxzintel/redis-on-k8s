@@ -50,6 +50,10 @@ Alternatively, read the Redis documentation, as it certainly does a much better 
   * Run `sentinel masters` to get all the info associated with the current alpha pod.
     * Once we kill the current alpha, we will rerun these commands to confirm the ip listed has changed.
   * Exit Sentinel and the redis-client pod with `exit` x2.
+  * Scale down your alpha statefulset:
+    * Get the name of your alpha statefulset first with `kubectl get statefulsets`
+    * Scale the alpha statefulset down to 0 with `kubectl scale sts STATEFULSET_NAME --replicas=0`
+  * Now that you don't have an alpha, Sentinel will begin the process of electing a new one from the available betas. Check the progress by `kubectl logs redis-beta-0 --container=sentinel -f`.
 
 
 ## THE FOLLOWING (below) CONFIG FOR REDIS IS DEPRACATED.
