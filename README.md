@@ -13,6 +13,7 @@ Alternatively, read the Redis documentation, as it certainly does a much better 
   * If the Alpha ever fails/goes down, and one of the Betas can fail over to become the new Alpha. This operation is performed by the sentinel.
 
 ### Configuration v2:
+**Much of this is exactly the same as bitnami's guide linked below, however I have re-ordered and re-worded it such that it is slightly easier to follow (in my opinion).**
 * Alright. So, the config in `~/infra/...` is old. We need a modern way to deploy redis. Helm (https://docs.bitnami.com/tutorials/deploy-redis-sentinel-production-cluster/) seems like a good pick.
 * Following along with that tutorial...
   * `curl -Lo values-production.yaml https://raw.githubusercontent.com/bitnami/charts/alpha/bitnami/redis/values-production.yaml` to get the redis chart. We need to edit this to enable sentinel. `CMD+F` Sentinel to find the section where `sentinel.enabled: false` and change it to true.
@@ -24,17 +25,31 @@ Alternatively, read the Redis documentation, as it certainly does a much better 
   * Congrats! You now have a running redis cluster! Now let's dig into it, testing its features (data replication, failover, etc...).
 * Testing Redis cluster data replication:
   * First, we want to connect to the alpha node and save some key and value in the key value store.
-    * `kubectl get pods` to get the name of your alpha pod.
-    * `kubectl get svc` to get the name of your headless service.
-    * `export REDIS_PASSWORD=$(kubectl get secret --namespace default redis -o jsonpath="{.data.redis-password}" | base64 --decode)` to get and save your password in your current terminal instance. You'll have to rerun this if you exit your terminal, restart your machine, etc.
-    * Accessing the alpha node requires the above information. Basically, we have to run a redis client in a separate pod, then from that pod connect to the redis alpha. Once we have connected, we can use some commands to save a simple key and value. **The goal of this is to check whether that key/value pair has replicated to the beta instances.**
-    * Run Redis in a separate pod as mentioned above: `kubectl run --namespace default redis-client --rm --tty -i --restart='Never' --env REDIS_PASSWORD=$REDIS_PASSWORD --labels="redis-client=true" --image docker.io/bitnami/redis:6.0.5-debian-10-r23 -- bash`
-    * In that Pod, connect to the alpha with: `redis-cli -h redis-alpha-0.redis-headless -a $REDIS_PASSWORD`
-    * Once you have connected, save a key and value with `set foo "hello world"`.
-    * Verify it's saved with `get foo` (should output "hello world").
-    * Exit the alpha with `exit`.
-    * Connect to a beta Pod (still in your separate redis Pod from before) with `redis-cli -h BETA-POD-NAME.HEADLESS-SVC-NAME -a $REDIS_PASSWORD`.
-    * Check if the data has replicated with `get foo`.
+  * `kubectl get pods` to get the name of your alpha pod.
+  * `kubectl get svc` to get the name of your headless service.
+  * `export REDIS_PASSWORD=$(kubectl get secret --namespace default redis -o jsonpath="{.data.redis-password}" | base64 --decode)` to get and save your password in your current terminal instance. You'll have to rerun this if you exit your terminal, restart your machine, etc.
+  * Accessing the alpha node requires the above information. Basically, we have to run a redis client in a separate pod, then from that pod connect to the redis alpha. Once we have connected, we can use some commands to save a simple key and value. **The goal of this is to check whether that key/value pair has replicated to the beta instances.**
+  * Run Redis in a separate pod as mentioned above: `kubectl run --namespace default redis-client --rm --tty -i --restart='Never' --env REDIS_PASSWORD=$REDIS_PASSWORD --labels="redis-client=true" --image docker.io/bitnami/redis:6.0.5-debian-10-r23 -- bash`
+  * In that Pod, connect to the alpha with: `redis-cli -h redis-alpha-0.redis-headless -a $REDIS_PASSWORD`
+  * Once you have connected, save a key and value with `set foo "hello world"`.
+  * Verify it's saved with `get foo` (should output "hello world").
+  * Exit the alpha with `exit`.
+  * Connect to a beta Pod (still in your separate redis Pod from before) with `redis-cli -h BETA-POD-NAME.HEADLESS-SVC-NAME -a $REDIS_PASSWORD`.
+  * Check if the data has replicated with `get foo`.
+  * Be happy, cuz that probably worked.
+* Testing Cluster Metrics:
+  * Firstly, we have to make the metrics pod accessible from our machine.
+  * `kubectl get svc` to get the name of our metrics service and its associated port.
+  * Port-forward to the metrics service and port:
+    * `kubectl port-forward svc/redis-metrics 9121:9121`
+  * Open a new terminal tab, and get the metrics with `curl localhost:9121/metrics`.
+* Testing Sentinel Failover:
+  * Now let's test the cluster failover handling responsibilites of the Sentinel by simulating a failure of the master node.
+  * Spin up another redis client using the same command we used above, the one that started with `kubectl run --namespace...`.
+  * Once you are in the new Pod, run `redis-cli -h redis -p 26379 -a $REDIS_PASSWORD` (which is found towards the bottom of output.txt).
+  * Run `sentinel masters` to get all the info associated with the current alpha pod.
+    * Once we kill the current alpha, we will rerun these commands to confirm the ip listed has changed.
+  * Exit Sentinel and the redis-client pod with `exit` x2.
 
 
 ## THE FOLLOWING (below) CONFIG FOR REDIS IS DEPRACATED.
