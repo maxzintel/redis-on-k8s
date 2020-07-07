@@ -14,40 +14,36 @@ spec:
         app: redis
     spec:
       containers:
-        - name: redis
-          command: [sh, -c, source /redis-config/init.sh ]
-          image: redis:4.0.11-alpine # Definitely use a newer version in practice!
-          ports:
-            - containerPort: 6379
-              name: redis
-          volumeMounts:
-            - mountPath: /redis-config
-              name: config
-            - mountPath: /redis-data
-              name: data
-        - name: sentinel
-          command: [sh, -c, source /redis-config-src/sentinel.sh ]
-          image: redis:4.0.11-alpine # Definitely use a newer version in practice!
-          volumeMounts:
-            - mountPath: /redis-config-src
-              name: config
-            - mountPath: /redis-data
-              name: data
-        volumes:
-          - configMap:
-              defaultMode: 420 # (Nice)
-              name: redis-config
-            name: config
-          - emptyDir:
-            name: data
-            volumeMounts:
-            - mountPath: /redis-config
-              name: config
-            - mountPath: /redis-data
-              name: data
-          - command: [sh, -c, source /redis-config/sentinel.sh]
-            image: redis:3.2.7-alpine
-            name: sentinel
-            volumeMounts:
-              - mountPath: /redis-config
-                name: config
+      - name: redis
+        command: [sh, -c, source /redis-config/init.sh ]
+        image: redis:4.0.11-alpine # Definitely use a newer version in practice!
+        ports:
+        - containerPort: 6379
+          name: redis
+        volumeMounts:
+        - mountPath: /redis-config
+          name: config
+        - mountPath: /redis-data
+          name: data
+      - name: sentinel
+        command: [sh, -c, source /redis-config-src/sentinel.sh ]
+        image: redis:4.0.11-alpine # Definitely use a newer version in practice!
+        volumeMounts:
+        - mountPath: /redis-config-src
+          name: config
+        - mountPath: /redis-data
+          name: data
+      volumes:
+      - name: config
+        configMap:
+          defaultMode: 420 # (Nice)
+          name: "redis-config"
+      - name: data
+        emptyDir: {}
+      - name: sentinel
+        command: 
+        - sh 
+        - -c
+        - source 
+        - /redis-config/sentinel.sh
+        image: redis:3.2.7-alpine
