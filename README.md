@@ -53,7 +53,9 @@ Alternatively, read the Redis documentation, as it certainly does a much better 
   * Scale down your alpha statefulset:
     * Get the name of your alpha statefulset first with `kubectl get statefulsets`
     * Scale the alpha statefulset down to 0 with `kubectl scale sts STATEFULSET_NAME --replicas=0`
-  * Now that you don't have an alpha, Sentinel will begin the process of electing a new one from the available betas. Check the progress by `kubectl logs redis-beta-0 --container=sentinel -f`.
+  * Now that you don't have an alpha, Sentinel will begin the process of electing a new one from the available betas. Check the progress by `kubectl logs redis-beta-0 --container=sentinel -f`. 
+  * With the above command you can also find which Pod gets selected/voted to be the new alpha. It will be something like: `+switch-master mymaster 111.111.11.000 6379 111.111.1.001 6379` where the first IP is your old alpha, and the second is the new one.
+  * Check which of your Pods is now the alpha by cross-referencing the IP in `kubectl get pods -o wide`
 
 
 ## THE FOLLOWING (below) CONFIG FOR REDIS IS DEPRACATED.
